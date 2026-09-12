@@ -1,18 +1,47 @@
-import { getAllProducts, createProduct as createProductService } from "../services/productService.js";
+import {
+  getAllProducts,
+  createProduct as createProductService,
+  getProduct as getProductById,
+  updateProduct as updateProductService,
+  deleteProduct as deleteProductService,
+} from "../services/productService.js";
+import { validateId } from "../utils/validateId.js";
 
-export const getProducts = async (req, res) => {
+export const getProducts = async (req, res, next) => {
   try {
-    const products = await getAllProducts()
+    const products = await getAllProducts();
     res.status(200).json(products);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "could not get products" });
+    next(error)
   }
 };
 
-export const createProduct = async(req,res) => {
+export const getProduct = async (req, res, next) => {
   try {
-    const {name, type,price, description, image, stock} = req.body;
+    const productId = validateId(req.params.id);
+
+    if (!productId) {
+      return res.status(400).json({
+        message: "Invalid product ID",
+      });
+    }
+
+    const product = await getProductById(productId);
+
+    if (!product) {
+      return res.status(404).json({
+        message: "product not found",
+      });
+    }
+    res.status(200).json(product);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createProduct = async (req, res, next) => {
+  try {
+    const { name, type, price, description, image, stock } = req.body;
 
     const productData = {
       name,
@@ -20,13 +49,57 @@ export const createProduct = async(req,res) => {
       price,
       description,
       image,
-      stock
-    }
+      stock,
+    };
 
-    const product = await createProductService(productData)
-    res.status(201).json(product)
+    const product = await createProductService(productData);
+    res.status(201).json(product);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({message: "Could not create product"})
+    next(error);
   }
-}
+};
+
+export const updateProduct = async (req, res, next) => {
+  try {
+    const productId = validateId(req.params.id);
+
+    if (!productId) {
+      return res.status(400).json({
+        message: "Invalid product ID",
+      });
+    }
+    const { name, type, price, description, image, stock } = req.body;
+
+    const productData = {
+      name,
+      type,
+      price,
+      description,
+      image,
+      stock,
+    };
+
+    const product = await updateProductService(productId, productData);
+
+    res.status(200).json(product);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteProduct = async (req, res,next) => {
+  try {
+    const productId = validateId(req.params.id);
+
+    if (!productId) {
+      return res.status(400).json({
+        message: "Invalid product ID",
+      });
+    }
+    await deleteProductService(productId);
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
