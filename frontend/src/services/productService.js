@@ -9,3 +9,13 @@ export const getProducts = async () => {
 
     return response.json();
 }
+
+export const getProductById = async (id) => {
+  const response = await fetch(`${API_URL}/products/${id}`);
+
+  if (!response.ok) {
+    throw new Error("Product not found");
+  }
+
+  return response.json();
+};

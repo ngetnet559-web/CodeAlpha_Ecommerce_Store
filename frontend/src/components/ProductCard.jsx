@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function ProductCard({ product }) {
   return (
     <article className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
@@ -34,13 +35,12 @@ function ProductCard({ product }) {
           </p>
         </div>
 
-        <button
-          type="button"
-          disabled={product.stock === 0}
-          className="mt-5 w-full rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
-        >
-          View Details
-        </button>
+        <Link
+  to={`/products/${product.product_id}`}
+  className="mt-5 block w-full rounded-xl bg-black px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-gray-800"
+>
+  View Details
+</Link>
       </div>
     </article>
   );
