@@ -1,40 +1,48 @@
 function ProductCard({ product }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-      <img
-        src={product.image}
-        alt={product.name}
-        className="h-56 w-full object-cover"
-      />
+    <article className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <div className="overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="h-64 w-full object-cover transition duration-500 group-hover:scale-105"
+        />
+      </div>
 
-      <div className="space-y-3 p-5">
-        <div>
-          <p className="text-sm text-gray-500">{product.type}</p>
+      <div className="p-5">
+        <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
+          {product.type}
+        </p>
 
-          <h2 className="mt-1 text-xl font-semibold text-gray-900">
-            {product.name}
-          </h2>
+        <h2 className="mt-2 text-xl font-semibold text-gray-900">
+          {product.name}
+        </h2>
+
+        <p className="mt-3 text-lg font-bold text-gray-900">
+          ${product.price.toFixed(2)}
+        </p>
+
+        <div className="mt-3 flex items-center justify-between">
+          <p
+            className={`text-sm ${
+              product.stock > 0 ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {product.stock > 0
+              ? `${product.stock} available`
+              : "Out of stock"}
+          </p>
         </div>
-
-        <p className="text-lg font-bold text-gray-900">
-          ${product.price}
-        </p>
-
-        <p className="text-sm text-gray-500">
-          {product.stock > 0
-            ? `${product.stock} available`
-            : "Out of stock"}
-        </p>
 
         <button
           type="button"
           disabled={product.stock === 0}
-          className="w-full rounded-lg cursor-pointer bg-[#27ff1f] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#26e420] disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="mt-5 w-full rounded-xl bg-black px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
         >
           View Details
         </button>
       </div>
-    </div>
+    </article>
   );
 }
 
