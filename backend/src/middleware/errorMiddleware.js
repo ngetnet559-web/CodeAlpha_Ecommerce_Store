@@ -1,6 +1,11 @@
 export const errorMiddleware = (err, req, res, next) => {
   console.error(err);
 
+  if(err.code === "P2002"){
+     return res.status(409).json({
+      message: "Email already exists"
+     })
+  }
   if (err.code === "P2025") {
     return res.status(404).json({
       message: "Product not found",
