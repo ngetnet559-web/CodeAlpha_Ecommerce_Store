@@ -6,6 +6,7 @@ import {
   deleteProduct as deleteProductService,
 } from "../services/productService.js";
 import { validateId } from "../utils/validateId.js";
+import { uploadImage } from "../services/imageService.js";
 
 export const getProducts = async (req, res, next) => {
   try {
@@ -38,21 +39,23 @@ export const getProduct = async (req, res, next) => {
     next(error);
   }
 };
-
 export const createProduct = async (req, res, next) => {
   try {
-    const { name, type, price, description, image, stock } = req.body;
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Image is required",
+      });
+    }
+
+    const image = await uploadImage(req.file);
 
     const productData = {
-      name,
-      type,
-      price,
-      description,
-      image,
-      stock,
+      ...req.body,
+      image: image.secure_url,
     };
 
     const product = await createProductService(productData);
+
     res.status(201).json(product);
   } catch (error) {
     next(error);
