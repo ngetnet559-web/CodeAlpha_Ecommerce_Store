@@ -1,5 +1,4 @@
 export const errorMiddleware = (err, req, res, next) => {
-  console.error(err);
 
   if(err.code === "P2002"){
      return res.status(409).json({
@@ -11,5 +10,7 @@ export const errorMiddleware = (err, req, res, next) => {
       message: "Product not found",
     });
   }
-  res.status(500).json({ message: "Something went wrong" });
+
+  const statusCode = err.statusCode || 500
+  res.status(statusCode).json({ message: err.message});
 };
