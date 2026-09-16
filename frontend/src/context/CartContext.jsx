@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 
-export const CartContext = createContext();
+ const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
@@ -53,6 +53,34 @@ export function CartProvider({ children }) {
     );
   };
 
+  // Remove one product completely
+  const removeFromCart = (productId) => {
+    setCart((currentCart) =>
+      currentCart.filter((item) => item.product_id !== productId)
+    );
+  };
+
+  // Remove everything from the cart
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  // Set a specific quantity
+  const updateQuantity = (productId, quantity) => {
+    if (quantity <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+
+    setCart((currentCart) =>
+      currentCart.map((item) =>
+        item.product_id === productId
+          ? { ...item, quantity }
+          : item
+      )
+    );
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -60,9 +88,14 @@ export function CartProvider({ children }) {
         addToCart,
         increaseQuantity,
         decreaseQuantity,
+        removeFromCart,
+        clearCart,
+        updateQuantity,
       }}
     >
       {children}
     </CartContext.Provider>
   );
 }
+
+export default CartContext
