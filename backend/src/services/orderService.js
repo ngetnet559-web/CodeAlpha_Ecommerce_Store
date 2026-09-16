@@ -9,10 +9,18 @@ export const createOrder = async (userId, items) => {
 
   const productIds = items.map((item) => item.product_id);
 
+const uniqueProductIds = new Set(productIds);
+
+if (uniqueProductIds.size !== productIds.length) {
+  const error = new Error("Duplicate products are not allowed");
+  error.statusCode = 400;
+  throw error;
+}
+
   const products = await prisma.product.findMany({
     where: {
       product_id: {
-        in: productIds,
+        in: [...uniqueProductIds],
       },
     },
   });

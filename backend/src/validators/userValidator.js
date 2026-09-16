@@ -7,3 +7,11 @@ export const registerSchema = z.object({
         error:"password is required",
     }).min(6, "password must be at least 6 characters ")
 })
+
+export const loginSchema = z.object({
+  email: z.email("Invalid email address"),
+
+  password: z.string({
+    error: "Password is required",
+  }).min(1, "Password cannot be empty"),
+});
