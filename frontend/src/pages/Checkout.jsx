@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/useCart";
+import toast from "react-hot-toast";
 
 const Checkout = () => {
   const { cart, clearCart } = useCart();
@@ -71,6 +72,7 @@ const Checkout = () => {
       }
 
       clearCart();
+      toast.success("Order placed successfully!");
 navigate("/order-confirmation", {
   state: {
     order: data,

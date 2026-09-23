@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -44,7 +45,9 @@ const Login = () => {
 
       login(data.user, data.token);
 
-      navigate("/");
+toast.success("Welcome back!");
+
+navigate("/");
     } catch (error) {
       console.error("Login error:", error);
       setError(error.message);

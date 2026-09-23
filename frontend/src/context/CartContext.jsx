@@ -1,6 +1,9 @@
 import { createContext, useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
- const CartContext = createContext();
+// The context and provider intentionally live together for this feature.
+// eslint-disable-next-line react-refresh/only-export-components
+export const CartContext = createContext();
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(() => {
@@ -20,14 +23,27 @@ export function CartProvider({ children }) {
       );
 
       if (existingProduct) {
+        toast.success(`${product.name} quantity increased`);
+
         return currentCart.map((item) =>
           item.product_id === product.product_id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: item.quantity + 1,
+              }
             : item
         );
       }
 
-      return [...currentCart, { ...product, quantity: 1 }];
+      toast.success(`${product.name} added to cart`);
+
+      return [
+        ...currentCart,
+        {
+          ...product,
+          quantity: 1,
+        },
+      ];
     });
   };
 
@@ -35,7 +51,10 @@ export function CartProvider({ children }) {
     setCart((currentCart) =>
       currentCart.map((item) =>
         item.product_id === productId
-          ? { ...item, quantity: item.quantity + 1 }
+          ? {
+              ...item,
+              quantity: item.quantity + 1,
+            }
           : item
       )
     );
@@ -46,26 +65,40 @@ export function CartProvider({ children }) {
       currentCart
         .map((item) =>
           item.product_id === productId
-            ? { ...item, quantity: item.quantity - 1 }
+            ? {
+                ...item,
+                quantity: item.quantity - 1,
+              }
             : item
         )
         .filter((item) => item.quantity > 0)
     );
   };
 
-  // Remove one product completely
   const removeFromCart = (productId) => {
-    setCart((currentCart) =>
-      currentCart.filter((item) => item.product_id !== productId)
-    );
+    setCart((currentCart) => {
+      const product = currentCart.find(
+        (item) => item.product_id === productId
+      );
+
+      if (product) {
+        toast.success(`${product.name} removed from cart`);
+      }
+
+      return currentCart.filter(
+        (item) => item.product_id !== productId
+      );
+    });
   };
 
-  // Remove everything from the cart
   const clearCart = () => {
+    if (cart.length > 0) {
+      toast.success("Cart cleared");
+    }
+
     setCart([]);
   };
 
-  // Set a specific quantity
   const updateQuantity = (productId, quantity) => {
     if (quantity <= 0) {
       removeFromCart(productId);
@@ -75,7 +108,10 @@ export function CartProvider({ children }) {
     setCart((currentCart) =>
       currentCart.map((item) =>
         item.product_id === productId
-          ? { ...item, quantity }
+          ? {
+              ...item,
+              quantity,
+            }
           : item
       )
     );
@@ -97,5 +133,3 @@ export function CartProvider({ children }) {
     </CartContext.Provider>
   );
 }
-
-export default CartContext
