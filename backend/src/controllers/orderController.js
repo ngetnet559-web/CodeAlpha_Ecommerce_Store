@@ -1,6 +1,7 @@
 import {
   createOrder as createOrderService,
   getUserOrders,
+  getOrderById,
 } from "../services/orderService.js";
 
 export const createOrder = async (req, res, next) => {
@@ -37,6 +38,25 @@ export const getOrders = async (req, res, next) => {
     const orders = await getUserOrders(userId);
 
     res.status(200).json(orders);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getOrder = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const orderId = Number(req.params.id);
+
+    if (!Number.isInteger(orderId) || orderId <= 0) {
+      return res.status(400).json({
+        message: "Invalid order ID",
+      });
+    }
+
+    const order = await getOrderById(orderId, userId);
+
+    res.status(200).json(order);
   } catch (error) {
     next(error);
   }

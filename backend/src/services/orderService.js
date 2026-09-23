@@ -136,3 +136,27 @@ export const getUserOrders = async (userId) => {
     },
   });
 };
+
+export const getOrderById = async (orderId, userId) => {
+  const order = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+      userId,
+    },
+    include: {
+      orderItems: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    const error = new Error("Order not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return order;
+};
