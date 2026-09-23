@@ -1,21 +1,28 @@
 import prisma from "../lib/prisma.js";
 
-export const createOrder = async (userId, items) => {
+export const createOrder = async (userId, items, checkoutData) => {
   if (!Array.isArray(items) || items.length === 0) {
     const error = new Error("Cart cannot be empty");
     error.statusCode = 400;
     throw error;
   }
 
+  const {
+    fullName,
+    phone,
+    address,
+    city,
+    paymentMethod,
+  } = checkoutData;
+
   const productIds = items.map((item) => item.product_id);
+  const uniqueProductIds = new Set(productIds);
 
-const uniqueProductIds = new Set(productIds);
-
-if (uniqueProductIds.size !== productIds.length) {
-  const error = new Error("Duplicate products are not allowed");
-  error.statusCode = 400;
-  throw error;
-}
+  if (uniqueProductIds.size !== productIds.length) {
+    const error = new Error("Duplicate products are not allowed");
+    error.statusCode = 400;
+    throw error;
+  }
 
   const products = await prisma.product.findMany({
     where: {
@@ -31,10 +38,11 @@ if (uniqueProductIds.size !== productIds.length) {
     throw error;
   }
 
-  let total = 0;
+  let subtotal = 0;
+
   const orderItems = items.map((item) => {
     const product = products.find(
-      (product) => product.product_id === item.product_id,
+      (product) => product.product_id === item.product_id
     );
 
     if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
@@ -49,7 +57,7 @@ if (uniqueProductIds.size !== productIds.length) {
       throw error;
     }
 
-    total += product.price * item.quantity;
+    subtotal += product.price * item.quantity;
 
     return {
       product_id: product.product_id,
@@ -58,11 +66,20 @@ if (uniqueProductIds.size !== productIds.length) {
     };
   });
 
+  const shippingFee = subtotal > 0 ? 5 : 0;
+  const total = subtotal + shippingFee;
+
   const order = await prisma.$transaction(async (tx) => {
     const newOrder = await tx.order.create({
       data: {
         userId,
+        fullName,
+        phone,
+        address,
+        city,
+        paymentMethod,
         status: "PENDING",
+        shippingFee,
         total,
       },
     });

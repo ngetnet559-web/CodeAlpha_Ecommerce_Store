@@ -31,13 +31,21 @@ model Product {
 model Order {
   id Int @id @default(autoincrement())
   userId Int
+
+  fullName String
+  phone String
+  address String
+  city String
+  paymentMethod String
+
   createdAt DateTime @default(now())
   status String
   total Float
+  shippingFee Float @default(0)
+
   orderItems OrderItem[]
   user User @relation(fields: [userId], references: [id])
 }
-
 model OrderItem {
   id Int @id @default(autoincrement())
   order_id Int

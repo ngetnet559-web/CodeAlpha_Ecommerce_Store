@@ -10,11 +10,6 @@ const Orders = () => {
       try {
         const token = localStorage.getItem("token");
 
-        if (!token) {
-          setError("Please login to view your orders.");
-          return;
-        }
-
         const response = await fetch("/api/orders", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -29,6 +24,7 @@ const Orders = () => {
 
         setOrders(data);
       } catch (error) {
+        console.error("Error fetching orders:", error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -40,31 +36,47 @@ const Orders = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Loading orders...</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-gray-500">Loading orders...</p>
+      </main>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600">{error}</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="rounded-lg bg-red-50 p-6 text-center text-red-600">
+          {error}
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 py-8">
+    <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-5xl">
-        <h1 className="mb-8 text-3xl font-bold">
-          My Orders
-        </h1>
+        <div className="mb-10">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
+            Your purchases
+          </p>
+
+          <h1 className="mt-2 text-4xl font-bold text-gray-900">
+            My Orders
+          </h1>
+
+          <p className="mt-3 text-gray-500">
+            View your previous orders and delivery information.
+          </p>
+        </div>
 
         {orders.length === 0 ? (
-          <div className="rounded-lg bg-white p-8 text-center shadow">
-            <p className="text-gray-600">
-              You haven't placed any orders yet.
+          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-900">
+              No orders yet
+            </h2>
+
+            <p className="mt-3 text-gray-500">
+              Your orders will appear here after you make a purchase.
             </p>
           </div>
         ) : (
@@ -72,57 +84,134 @@ const Orders = () => {
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="rounded-lg bg-white p-6 shadow"
+                className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
               >
-                <div className="mb-4 flex flex-col justify-between gap-2 border-b pb-4 sm:flex-row">
+                {/* Order Header */}
+                <div className="flex flex-col gap-4 border-b border-gray-200 p-6 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="font-semibold">
-                      Order #{order.id}
-                    </h2>
-
                     <p className="text-sm text-gray-500">
+                      Order #{order.id}
+                    </p>
+
+                    <p className="mt-1 text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
 
-                  <span className="h-fit rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
+                  <span className="w-fit rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
                     {order.status}
                   </span>
                 </div>
 
-                <div className="space-y-3">
-                  {order.orderItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between border-b pb-3 last:border-b-0"
-                    >
-                      <div>
-                        <p className="font-medium">
-                          {item.product.name}
-                        </p>
+                <div className="grid gap-6 p-6 lg:grid-cols-3">
+                  {/* Items */}
+                  <div className="lg:col-span-2">
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                      Items
+                    </h2>
 
-                        <p className="text-sm text-gray-500">
-                          Quantity: {item.quantity}
+                    <div className="space-y-4">
+                      {order.orderItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex gap-4 border-b border-gray-100 pb-4 last:border-0"
+                        >
+                          <img
+                            src={item.product.image}
+                            alt={item.product.name}
+                            className="h-20 w-20 rounded-lg object-cover"
+                          />
+
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900">
+                              {item.product.name}
+                            </h3>
+
+                            <p className="mt-1 text-sm text-gray-500">
+                              Quantity: {item.quantity}
+                            </p>
+
+                            <p className="mt-1 text-sm text-gray-500">
+                              ${item.price.toFixed(2)} each
+                            </p>
+                          </div>
+
+                          <p className="font-semibold text-gray-900">
+                            $
+                            {(item.price * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Delivery Information */}
+                  <div>
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                      Delivery
+                    </h2>
+
+                    <div className="space-y-3 text-sm">
+                      <div>
+                        <p className="text-gray-500">Name</p>
+                        <p className="font-medium text-gray-900">
+                          {order.fullName}
                         </p>
                       </div>
 
-                      <p className="font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </p>
+                      <div>
+                        <p className="text-gray-500">Phone</p>
+                        <p className="font-medium text-gray-900">
+                          {order.phone}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-500">Address</p>
+                        <p className="font-medium text-gray-900">
+                          {order.address}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-500">City</p>
+                        <p className="font-medium text-gray-900">
+                          {order.city}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-500">Payment</p>
+                        <p className="font-medium capitalize text-gray-900">
+                          {order.paymentMethod}
+                        </p>
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
 
-                <div className="mt-4 flex justify-between border-t pt-4 text-lg font-bold">
-                  <span>Total</span>
-                  <span>${order.total.toFixed(2)}</span>
+                {/* Total */}
+                <div className="border-t border-gray-200 bg-gray-50 p-6">
+                  <div className="ml-auto max-w-xs space-y-3">
+                    <div className="flex justify-between text-gray-600">
+                      <span>Shipping</span>
+                      <span>
+                        ${Number(order.shippingFee || 0).toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between border-t border-gray-200 pt-3 text-lg font-bold text-gray-900">
+                      <span>Total</span>
+                      <span>${Number(order.total).toFixed(2)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

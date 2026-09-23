@@ -6,9 +6,23 @@ import {
 export const createOrder = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { items } = req.body;
 
-    const order = await createOrderService(userId, items);
+    const {
+      items,
+      fullName,
+      phone,
+      address,
+      city,
+      paymentMethod,
+    } = req.body;
+
+    const order = await createOrderService(userId, items, {
+      fullName,
+      phone,
+      address,
+      city,
+      paymentMethod,
+    });
 
     res.status(201).json(order);
   } catch (error) {

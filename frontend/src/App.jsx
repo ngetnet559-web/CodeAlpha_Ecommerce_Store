@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from './pages/Home'
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
@@ -7,6 +7,7 @@ import Orders from "./pages/Orders";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Navbar from "./components/Navbar";
+import Checkout from "./pages/Checkout";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -16,7 +17,7 @@ function App() {
     <Navbar />
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<Navigate to="/products" />} />
+        <Route path="/" element={<Home />} />
 
         <Route path="/products" element={<Products />} />
 
@@ -34,6 +35,7 @@ function App() {
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route path="/orders" element={<Orders />} />
+          <Route path="/checkout" element={<Checkout />} />
         </Route>
       </Routes>
     </BrowserRouter>
