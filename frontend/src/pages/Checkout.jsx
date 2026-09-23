@@ -81,11 +81,7 @@ const Checkout = () => {
 
       toast.success("Order placed successfully!");
 
-      navigate("/order-confirmation", {
-        state: {
-          order: data,
-        },
-      });
+      navigate(`/order-confirmation/${data.id}`);
     } catch (error) {
       console.error("Checkout error:", error);
       setError(error.message);
