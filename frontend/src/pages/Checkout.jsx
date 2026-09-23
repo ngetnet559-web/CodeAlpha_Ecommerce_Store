@@ -71,8 +71,11 @@ const Checkout = () => {
       }
 
       clearCart();
-
-      navigate("/orders");
+navigate("/order-confirmation", {
+  state: {
+    order: data,
+  },
+});
     } catch (error) {
       console.error("Checkout error:", error);
       setError(error.message);
