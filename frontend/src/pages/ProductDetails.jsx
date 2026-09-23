@@ -9,6 +9,7 @@ const ProductDetails = () => {
 
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -19,15 +20,19 @@ const ProductDetails = () => {
         setError("");
 
         const response = await fetch(`/api/products/${id}`);
+
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Product not found");
+          throw new Error(
+            data.message || "Failed to load product"
+          );
         }
 
         setProduct(data);
+        setQuantity(1);
       } catch (error) {
-        console.error("Error fetching product:", error);
+        console.error("Product details error:", error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -38,24 +43,34 @@ const ProductDetails = () => {
   }, [id]);
 
   const increaseQuantity = () => {
-    if (quantity < product.stock) {
-      setQuantity((current) => current + 1);
-    }
+    if (!product) return;
+
+    setQuantity((currentQuantity) =>
+      Math.min(currentQuantity + 1, product.stock)
+    );
   };
 
   const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity((current) => current - 1);
-    }
+    setQuantity((currentQuantity) =>
+      Math.max(currentQuantity - 1, 1)
+    );
   };
 
   const handleAddToCart = () => {
+    if (!product || product.stock <= 0) {
+      return;
+    }
+
     for (let i = 0; i < quantity; i++) {
       addToCart(product);
     }
   };
 
   const handleBuyNow = () => {
+    if (!product || product.stock <= 0) {
+      return;
+    }
+
     for (let i = 0; i < quantity; i++) {
       addToCart(product);
     }
@@ -65,30 +80,63 @@ const ProductDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Loading product...</p>
+      <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid animate-pulse gap-10 lg:grid-cols-2">
+            <div className="aspect-square rounded-2xl bg-gray-200" />
+
+            <div className="flex flex-col justify-center">
+              <div className="h-4 w-24 rounded bg-gray-200" />
+
+              <div className="mt-4 h-10 w-3/4 rounded bg-gray-200" />
+
+              <div className="mt-4 h-8 w-32 rounded bg-gray-200" />
+
+              <div className="mt-8 space-y-3">
+                <div className="h-4 w-full rounded bg-gray-200" />
+                <div className="h-4 w-full rounded bg-gray-200" />
+                <div className="h-4 w-2/3 rounded bg-gray-200" />
+              </div>
+
+              <div className="mt-8 h-12 w-40 rounded bg-gray-200" />
+
+              <div className="mt-5 h-12 w-full rounded bg-gray-200" />
+
+              <div className="mt-3 h-12 w-full rounded bg-gray-200" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="text-center">
+      <div className="min-h-screen bg-gray-50 px-4 py-16">
+        <div className="mx-auto max-w-xl text-center">
           <h1 className="text-2xl font-bold text-gray-900">
-            Product Not Found
+            Unable to load product
           </h1>
 
-          <p className="mt-2 text-gray-500">
-            {error || "This product does not exist."}
+          <p className="mt-3 text-gray-500">
+            {error || "Product not found"}
           </p>
 
-          <Link
-            to="/products"
-            className="mt-6 inline-block rounded-lg bg-black px-6 py-3 font-semibold text-white hover:bg-gray-800"
-          >
-            Back to Products
-          </Link>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800"
+            >
+              Try Again
+            </button>
+
+            <Link
+              to="/products"
+              className="rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 transition hover:bg-gray-100"
+            >
+              Back to Products
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -97,45 +145,39 @@ const ProductDetails = () => {
   const isOutOfStock = product.stock <= 0;
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10">
+    <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        {/* Breadcrumb */}
-        <div className="mb-8">
-          <Link
-            to="/products"
-            className="text-sm text-gray-500 hover:text-black"
-          >
-            ← Back to Products
-          </Link>
-        </div>
+        <Link
+          to="/products"
+          className="mb-8 inline-flex items-center text-sm font-medium text-gray-500 transition hover:text-black"
+        >
+          ← Back to Products
+        </Link>
 
-        {/* Product */}
-        <div className="grid gap-10 rounded-2xl bg-white p-6 shadow-sm md:grid-cols-2 md:p-10">
-          {/* Image */}
-          <div className="overflow-hidden rounded-xl bg-gray-100">
+        <div className="grid gap-10 rounded-2xl bg-white p-5 shadow-sm sm:p-8 lg:grid-cols-2 lg:p-10">
+          <div className="overflow-hidden rounded-2xl bg-gray-100">
             <img
               src={product.image}
               alt={product.name}
-              className="h-full max-h-[600px] w-full object-cover"
+              className="aspect-square h-full w-full object-cover"
             />
           </div>
 
-          {/* Information */}
           <div className="flex flex-col justify-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
+            <p className="text-sm font-medium uppercase tracking-wider text-gray-400">
               {product.type}
             </p>
 
-            <h1 className="mt-3 text-4xl font-bold text-gray-900">
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               {product.name}
             </h1>
 
-            <p className="mt-5 text-3xl font-bold text-gray-900">
-              ${product.price.toFixed(2)}
+            <p className="mt-4 text-3xl font-bold text-gray-900">
+              ${Number(product.price).toFixed(2)}
             </p>
 
-            <div className="mt-6 border-t border-gray-200 pt-6">
-              <h2 className="text-lg font-semibold text-gray-900">
+            <div className="mt-6">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-900">
                 Description
               </h2>
 
@@ -144,81 +186,73 @@ const ProductDetails = () => {
               </p>
             </div>
 
-            {/* Stock */}
             <div className="mt-6">
               {isOutOfStock ? (
-                <p className="font-medium text-red-600">
+                <span className="inline-flex rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-700">
                   Out of stock
-                </p>
+                </span>
               ) : (
-                <p className="font-medium text-green-600">
+                <span className="inline-flex rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
                   {product.stock} items available
-                </p>
+                </span>
               )}
             </div>
 
             {!isOutOfStock && (
               <>
-                {/* Quantity */}
-                <div className="mt-6">
-                  <p className="mb-2 text-sm font-medium text-gray-700">
+                <div className="mt-8">
+                  <p className="mb-3 text-sm font-medium text-gray-700">
                     Quantity
                   </p>
 
                   <div className="flex w-fit items-center overflow-hidden rounded-lg border border-gray-300">
                     <button
+                      type="button"
                       onClick={decreaseQuantity}
                       disabled={quantity <= 1}
-                      className="flex h-11 w-11 items-center justify-center text-lg hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="h-11 w-11 text-lg text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300"
                     >
                       −
                     </button>
 
-                    <span className="flex h-11 w-12 items-center justify-center border-x border-gray-300 font-medium">
+                    <span className="flex h-11 w-14 items-center justify-center border-x border-gray-300 text-sm font-semibold text-gray-900">
                       {quantity}
                     </span>
 
                     <button
+                      type="button"
                       onClick={increaseQuantity}
                       disabled={quantity >= product.stock}
-                      className="flex h-11 w-11 items-center justify-center text-lg hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="h-11 w-11 text-lg text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300"
                     >
                       +
                     </button>
                   </div>
                 </div>
 
-                {/* Buttons */}
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-8 grid gap-3 sm:grid-cols-2">
                   <button
+                    type="button"
                     onClick={handleAddToCart}
-                    className="flex-1 rounded-lg border border-black px-6 py-3 font-semibold text-black transition hover:bg-gray-100"
+                    className="rounded-lg border border-gray-300 px-5 py-3 font-medium text-gray-900 transition hover:bg-gray-100"
                   >
                     Add to Cart
                   </button>
 
                   <button
+                    type="button"
                     onClick={handleBuyNow}
-                    className="flex-1 rounded-lg bg-black px-6 py-3 font-semibold text-white transition hover:bg-gray-800"
+                    className="rounded-lg bg-black px-5 py-3 font-medium text-white transition hover:bg-gray-800"
                   >
                     Buy Now
                   </button>
                 </div>
               </>
             )}
-
-            {isOutOfStock && (
-              <button
-                disabled
-                className="mt-8 w-full cursor-not-allowed rounded-lg bg-gray-300 px-6 py-3 font-semibold text-gray-500"
-              >
-                Out of Stock
-              </button>
-            )}
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 };
 
