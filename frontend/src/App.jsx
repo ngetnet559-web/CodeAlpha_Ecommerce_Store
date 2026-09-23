@@ -11,6 +11,7 @@ import Checkout from "./pages/Checkout";
 import OrderDetails from "./pages/OrderDetails";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
           <Route path="/checkout" element={<Checkout />} />
         </Route>
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }
