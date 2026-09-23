@@ -3,17 +3,17 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useCart } from "../context/useCart";
 
 const Products = () => {
+  const { addToCart } = useCart();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const { addToCart } = useCart();
 
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("");
-
-  const selectedCategory = searchParams.get("type") || "";
+  const search = searchParams.get("search") || "";
+  const category = searchParams.get("type") || "";
+  const sort = searchParams.get("sort") || "";
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -22,15 +22,18 @@ const Products = () => {
         setError("");
 
         const response = await fetch("/api/products");
+
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch products");
+          throw new Error(
+            data.message || "Failed to load products"
+          );
         }
 
         setProducts(data);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Products error:", error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -47,20 +50,15 @@ const Products = () => {
   const filteredProducts = useMemo(() => {
     let result = [...products];
 
-    if (search.trim()) {
-      const searchTerm = search.toLowerCase();
-
-      result = result.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchTerm) ||
-          product.type.toLowerCase().includes(searchTerm) ||
-          product.description.toLowerCase().includes(searchTerm)
+    if (search) {
+      result = result.filter((product) =>
+        product.name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
-    if (selectedCategory) {
+    if (category) {
       result = result.filter(
-        (product) => product.type === selectedCategory
+        (product) => product.type === category
       );
     }
 
@@ -73,145 +71,196 @@ const Products = () => {
     }
 
     if (sort === "name") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      result.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
     }
 
     return result;
-  }, [products, search, selectedCategory, sort]);
+  }, [products, search, category, sort]);
 
-  const handleCategoryChange = (category) => {
-    if (category) {
-      setSearchParams({ type: category });
+  const updateFilter = (key, value) => {
+    const params = new URLSearchParams(searchParams);
+
+    if (value) {
+      params.set(key, value);
     } else {
-      setSearchParams({});
+      params.delete(key);
     }
+
+    setSearchParams(params);
+  };
+
+  const clearFilters = () => {
+    setSearchParams({});
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Loading products...</p>
+      <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8">
+            <div className="h-9 w-40 animate-pulse rounded bg-gray-200" />
+            <div className="mt-3 h-5 w-64 animate-pulse rounded bg-gray-200" />
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div
+                key={index}
+                className="overflow-hidden rounded-xl bg-white shadow-sm"
+              >
+                <div className="aspect-square animate-pulse bg-gray-200" />
+
+                <div className="space-y-3 p-5">
+                  <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-gray-200" />
+
+                  <div className="h-5 w-24 animate-pulse rounded bg-gray-200" />
+
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-gray-200" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="rounded-lg bg-red-50 p-6 text-center text-red-600">
-          {error}
+      <div className="min-h-screen bg-gray-50 px-4 py-16">
+        <div className="mx-auto max-w-xl text-center">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Unable to load products
+          </h1>
+
+          <p className="mt-3 text-gray-500">{error}</p>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-10">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
-            Our collection
-          </p>
-
-          <h1 className="mt-2 text-4xl font-bold text-gray-900">
-            All Products
+    <div className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Products
           </h1>
 
-          <p className="mt-3 text-gray-600">
-            Find the products you're looking for.
+          <p className="mt-2 text-gray-500">
+            Browse our collection and find something you love.
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="mb-8 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="mb-8 rounded-xl bg-white p-4 shadow-sm sm:p-5">
           <div className="grid gap-4 md:grid-cols-3">
-            {/* Search */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="search"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
                 Search
               </label>
 
               <input
+                id="search"
                 type="text"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) =>
+                  updateFilter("search", e.target.value)
+                }
                 placeholder="Search products..."
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-black"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-1 focus:ring-black"
               />
             </div>
 
-            {/* Category */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="category"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
                 Category
               </label>
 
               <select
-                value={selectedCategory}
+                id="category"
+                value={category}
                 onChange={(e) =>
-                  handleCategoryChange(e.target.value)
+                  updateFilter("type", e.target.value)
                 }
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-black"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-1 focus:ring-black"
               >
-                <option value="">All categories</option>
+                <option value="">All Categories</option>
 
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
+                {categories.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Sort */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
-                Sort by
+              <label
+                htmlFor="sort"
+                className="mb-2 block text-sm font-medium text-gray-700"
+              >
+                Sort By
               </label>
 
               <select
+                id="sort"
                 value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-black"
+                onChange={(e) =>
+                  updateFilter("sort", e.target.value)
+                }
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-black focus:ring-1 focus:ring-black"
               >
                 <option value="">Default</option>
-                <option value="name">Name</option>
                 <option value="price-low">
                   Price: Low to High
                 </option>
                 <option value="price-high">
                   Price: High to Low
                 </option>
+                <option value="name">Name</option>
               </select>
             </div>
           </div>
+
+          <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-gray-500">
+              Showing{" "}
+              <span className="font-medium text-gray-900">
+                {filteredProducts.length}
+              </span>{" "}
+              products
+            </p>
+
+            {(search || category || sort) && (
+              <button
+                onClick={clearFilters}
+                className="text-left text-sm font-medium text-gray-900 hover:underline sm:text-right"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Results count */}
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            {filteredProducts.length} product
-            {filteredProducts.length !== 1 ? "s" : ""}
-          </p>
-
-          {(search || selectedCategory || sort) && (
-            <button
-              onClick={() => {
-                setSearch("");
-                setSort("");
-                setSearchParams({});
-              }}
-              className="text-sm font-medium text-gray-700 hover:text-black hover:underline"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-
-        {/* Products */}
         {filteredProducts.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
+          <div className="rounded-xl bg-white px-6 py-16 text-center shadow-sm">
             <h2 className="text-xl font-semibold text-gray-900">
               No products found
             </h2>
@@ -219,59 +268,71 @@ const Products = () => {
             <p className="mt-2 text-gray-500">
               Try changing your search or filters.
             </p>
+
+            <button
+              onClick={clearFilters}
+              className="mt-6 rounded-lg bg-black px-5 py-3 text-sm font-medium text-white hover:bg-gray-800"
+            >
+              Clear Filters
+            </button>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product) => (
               <div
                 key={product.product_id}
-                className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:-translate-y-1 hover:shadow-lg"
+                className="overflow-hidden rounded-xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
                 <Link to={`/products/${product.product_id}`}>
                   <div className="aspect-square overflow-hidden bg-gray-100">
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
                     />
                   </div>
                 </Link>
 
-                <div className="p-4">
-                  <p className="text-sm text-gray-500">
+                <div className="p-5">
+                  <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
                     {product.type}
                   </p>
 
-                  <Link to={`/products/${product.product_id}`}>
-                    <h2 className="mt-1 line-clamp-1 font-semibold text-gray-900 hover:underline">
+                  <Link
+                    to={`/products/${product.product_id}`}
+                    className="mt-2 block"
+                  >
+                    <h2 className="line-clamp-2 text-lg font-semibold text-gray-900 hover:underline">
                       {product.name}
                     </h2>
                   </Link>
 
-                  <p className="mt-2 text-lg font-bold text-gray-900">
-                    ${product.price.toFixed(2)}
-                  </p>
+                  <div className="mt-3 flex items-center justify-between">
+                    <p className="text-lg font-bold text-gray-900">
+                      ${Number(product.price).toFixed(2)}
+                    </p>
 
-                  <p
-                    className={`mt-2 text-sm ${
-                      product.stock > 0
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {product.stock > 0
-                      ? `${product.stock} in stock`
-                      : "Out of stock"}
-                  </p>
+                    <p
+                      className={`text-xs font-medium ${
+                        product.stock > 0
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {product.stock > 0
+                        ? `${product.stock} in stock`
+                        : "Out of stock"}
+                    </p>
+                  </div>
 
                   <button
                     onClick={() => addToCart(product)}
-                    disabled={product.stock <= 0}
-                    className="mt-4 w-full rounded-lg bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    disabled={product.stock === 0}
+                    className="mt-5 w-full rounded-lg bg-black px-4 py-3 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
                   >
-                    {product.stock > 0
-                      ? "Add to Cart"
-                      : "Out of Stock"}
+                    {product.stock === 0
+                      ? "Out of Stock"
+                      : "Add to Cart"}
                   </button>
                 </div>
               </div>
@@ -279,7 +340,7 @@ const Products = () => {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 };
 
