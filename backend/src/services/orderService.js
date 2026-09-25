@@ -51,17 +51,19 @@ export const createOrder = async (userId, items, checkoutData) => {
       throw error;
     }
 
-    subtotal += product.price * item.quantity;
+    subtotal += Number(product.price) * item.quantity;
 
     return {
       product_id: product.product_id,
       quantity: item.quantity,
-      price: product.price,
+      price: Number(product.price),
     };
   });
 
-  const shippingFee = subtotal > 0 ? 5 : 0;
-  const total = subtotal + shippingFee;
+ const shippingFee = subtotal > 0 ? 5 : 0;
+const total = Number(
+  (subtotal + shippingFee).toFixed(2)
+);
 
   const order = await prisma.$transaction(async (tx) => {
     const newOrder = await tx.order.create({
