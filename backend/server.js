@@ -29,7 +29,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: env.frontendUrl,
-  })
+  }),
 );
 
 app.use(e.json());
@@ -42,6 +42,11 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 
+app.use("/api", (req, res) => {
+  res.status(404).json({
+    message: "API endpoint not found",
+  });
+});
 app.use(errorMiddleware);
 
 app.listen(port, () => {

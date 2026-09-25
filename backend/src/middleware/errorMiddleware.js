@@ -1,4 +1,6 @@
 export const errorMiddleware = (err, req, res, next) => {
+  console.error(err);
+
   if (err.code === "P2002") {
     return res.status(409).json({
       message: "A record with this value already exists",
@@ -18,9 +20,20 @@ export const errorMiddleware = (err, req, res, next) => {
     });
   }
 
+  if (err.name === "MulterError") {
+    return res.status(400).json({
+      message: "File upload failed",
+    });
+  }
+
   const statusCode = err.statusCode || 500;
 
+  const message =
+    statusCode >= 500
+      ? "Internal server error"
+      : err.message || "Request failed";
+
   res.status(statusCode).json({
-    message: err.message || "Internal server error",
+    message,
   });
 };
