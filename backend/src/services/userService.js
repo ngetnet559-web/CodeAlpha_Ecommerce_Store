@@ -1,8 +1,9 @@
 import bcrypt from "bcrypt";
 import prisma from "../lib/prisma.js";
 import jwt from "jsonwebtoken";
+import env from "../config/env.js";
 
-const secret_key = process.env.JWT_SECRET;
+const secret_key = env.jwtSecret;
 
 export const createUser = async (userData) => {
   const hashedPassword = await bcrypt.hash(userData.password, 10);

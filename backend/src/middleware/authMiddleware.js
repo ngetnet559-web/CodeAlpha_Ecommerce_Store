@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import env from "../config/env.js";
 
-const secret_key = process.env.JWT_SECRET;
+const secret_key = env.jwtSecret;
 
 export const authMiddleware = (req, res, next) => {
   try {
