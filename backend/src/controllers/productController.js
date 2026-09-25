@@ -132,7 +132,21 @@ export const deleteProduct = async (req, res, next) => {
       });
     }
 
-    await deleteProductService(productId);
+    try {
+      await deleteProductService(productId);
+    } catch (error) {
+      if (error.code === "P2003") {
+        const deleteError = new Error(
+          "This product cannot be deleted because it is included in existing orders. Archive it instead.",
+        );
+
+        deleteError.statusCode = 409;
+
+        throw deleteError;
+      }
+
+      throw error;
+    }
 
     if (existingProduct.image) {
       try {
