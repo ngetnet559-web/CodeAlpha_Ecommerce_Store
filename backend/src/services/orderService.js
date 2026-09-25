@@ -7,7 +7,13 @@ export const createOrder = async (userId, items, checkoutData) => {
     throw error;
   }
 
-  const { fullName, phone, address, city, paymentMethod } = checkoutData;
+  const {
+    fullName,
+    phone,
+    address,
+    city,
+    paymentMethod,
+  } = checkoutData;
 
   const productIds = items.map((item) => item.product_id);
   const uniqueProductIds = new Set(productIds);
@@ -36,7 +42,7 @@ export const createOrder = async (userId, items, checkoutData) => {
 
   const orderItems = items.map((item) => {
     const product = products.find(
-      (product) => product.product_id === item.product_id,
+      (product) => product.product_id === item.product_id
     );
 
     if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
@@ -105,7 +111,11 @@ export const createOrder = async (userId, items, checkoutData) => {
         id: newOrder.id,
       },
       include: {
-        orderItems: true,
+        orderItems: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
   });
@@ -178,36 +188,68 @@ export const getAllOrders = async () => {
 };
 
 export const updateOrderStatus = async (orderId, status) => {
-  const order = await prisma.order.findUnique({
-    where: {
-      id: orderId,
-    },
-  });
+  return await prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      include: {
+        orderItems: true,
+      },
+    });
 
-  if (!order) {
-    const error = new Error("Order not found");
-    error.statusCode = 404;
-    throw error;
-  }
+    if (!order) {
+      const error = new Error("Order not found");
+      error.statusCode = 404;
+      throw error;
+    }
 
-  if (order.status === "CANCELLED") {
-    const error = new Error("Cancelled orders cannot be updated");
-    error.statusCode = 400;
-    throw error;
-  }
+    if (order.status === "CANCELLED") {
+      const error = new Error(
+        "Cancelled orders cannot be updated"
+      );
 
-  if (order.status === "DELIVERED" && status !== "DELIVERED") {
-    const error = new Error("Delivered orders cannot be moved backwards");
-    error.statusCode = 400;
-    throw error;
-  }
+      error.statusCode = 400;
+      throw error;
+    }
 
-  return await prisma.order.update({
-    where: {
-      id: orderId,
-    },
-    data: {
-      status,
-    },
+    if (
+      order.status === "DELIVERED" &&
+      status !== "DELIVERED"
+    ) {
+      const error = new Error(
+        "Delivered orders cannot be moved backwards"
+      );
+
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (
+      status === "CANCELLED" &&
+      order.status !== "CANCELLED"
+    ) {
+      for (const item of order.orderItems) {
+        await tx.product.update({
+          where: {
+            product_id: item.product_id,
+          },
+          data: {
+            stock: {
+              increment: item.quantity,
+            },
+          },
+        });
+      }
+    }
+
+    return await tx.order.update({
+      where: {
+        id: orderId,
+      },
+      data: {
+        status,
+      },
+    });
   });
 };
