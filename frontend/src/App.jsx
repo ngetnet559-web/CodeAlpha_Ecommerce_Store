@@ -15,6 +15,8 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import AdminRoute from "./components/AdminRoute";
+import AdminProducts from "./pages/admin/AdminProducts";
 
 function App() {
   return (
@@ -30,28 +32,24 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-
         <Route path="/products" element={<Products />} />
-
         <Route path="/products/:id" element={<ProductDetails />} />
-
         <Route path="/cart" element={<Cart />} />
-
         <Route path="/login" element={<Login />} />
-
         <Route path="/register" element={<Register />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/checkout" element={<Checkout />} />
-
           <Route path="/orders" element={<Orders />} />
-
           <Route path="/orders/:id" element={<OrderDetails />} />
-
           <Route
             path="/order-confirmation/:id"
             element={<OrderConfirmation />}
           />
+        </Route>
+
+        <Route element={<AdminRoute />}>
+          <Route path="/admin/products" element={<AdminProducts />} />
         </Route>
       </Routes>
 
