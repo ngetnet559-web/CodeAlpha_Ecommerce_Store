@@ -84,7 +84,19 @@ const AdminOrders = () => {
         }),
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type");
+
+      let data;
+
+      if (contentType?.includes("application/json")) {
+        data = await response.json();
+      } else {
+        await response.text();
+
+        throw new Error(
+          `Server returned an unexpected response (${response.status})`,
+        );
+      }
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to update order");
@@ -97,13 +109,14 @@ const AdminOrders = () => {
                 ...order,
                 status: data.status,
               }
-            : order
-        )
+            : order,
+        ),
       );
 
       toast.success("Order status updated");
     } catch (error) {
       console.error("Update order status error:", error);
+
       toast.error(error.message);
     } finally {
       setUpdatingId(null);
@@ -146,7 +159,7 @@ const AdminOrders = () => {
               setError("");
               setRetry((value) => value + 1);
             }}
-            className="mt-6 rounded-lg bg-black px-6 py-3 font-medium text-white hover:bg-gray-800"
+            className="mt-6 rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800"
           >
             Try Again
           </button>
@@ -158,14 +171,24 @@ const AdminOrders = () => {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Order Management
-          </h1>
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Order Management
+            </h1>
 
-          <p className="mt-2 text-gray-600">
-            View and manage customer orders.
-          </p>
+            <p className="mt-2 text-gray-600">
+              View and manage customer orders.
+            </p>
+          </div>
+
+          <Link
+            to="/admin"
+            className="text-sm font-medium text-gray-600 hover:text-black"
+          >
+            ← Dashboard
+          </Link>
         </div>
 
         {orders.length === 0 ? (
@@ -185,6 +208,7 @@ const AdminOrders = () => {
                 key={order.id}
                 className="rounded-2xl bg-white p-6 shadow-sm"
               >
+                {/* Order Header */}
                 <div className="flex flex-col gap-4 border-b border-gray-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -207,6 +231,7 @@ const AdminOrders = () => {
                     </p>
                   </div>
 
+                  {/* Status */}
                   <div className="flex items-center gap-3">
                     <label
                       htmlFor={`status-${order.id}`}
@@ -225,15 +250,21 @@ const AdminOrders = () => {
                       className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-black disabled:opacity-50"
                     >
                       <option value="PENDING">Pending</option>
+
                       <option value="PROCESSING">Processing</option>
+
                       <option value="SHIPPED">Shipped</option>
+
                       <option value="DELIVERED">Delivered</option>
+
                       <option value="CANCELLED">Cancelled</option>
                     </select>
                   </div>
                 </div>
 
+                {/* Customer / Delivery / Total */}
                 <div className="grid gap-6 py-6 lg:grid-cols-3">
+                  {/* Customer */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900">
                       Customer
@@ -243,15 +274,12 @@ const AdminOrders = () => {
                       {order.fullName}
                     </p>
 
-                    <p className="text-sm text-gray-600">
-                      {order.user?.email}
-                    </p>
+                    <p className="text-sm text-gray-600">{order.user?.email}</p>
 
-                    <p className="text-sm text-gray-600">
-                      {order.phone}
-                    </p>
+                    <p className="text-sm text-gray-600">{order.phone}</p>
                   </div>
 
+                  {/* Delivery */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900">
                       Delivery
@@ -261,18 +289,15 @@ const AdminOrders = () => {
                       {order.address}
                     </p>
 
-                    <p className="text-sm text-gray-600">
-                      {order.city}
-                    </p>
+                    <p className="text-sm text-gray-600">{order.city}</p>
 
                     <p className="mt-1 text-sm text-gray-600">
                       Payment:{" "}
-                      <span className="font-medium">
-                        {order.paymentMethod}
-                      </span>
+                      <span className="font-medium">{order.paymentMethod}</span>
                     </p>
                   </div>
 
+                  {/* Total */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900">
                       Order Total
@@ -289,6 +314,7 @@ const AdminOrders = () => {
                   </div>
                 </div>
 
+                {/* Products */}
                 <div className="border-t border-gray-100 pt-5">
                   <h3 className="mb-4 text-sm font-semibold text-gray-900">
                     Products
@@ -317,20 +343,18 @@ const AdminOrders = () => {
                         </div>
 
                         <p className="font-medium text-gray-900">
-                          $
-                          {(
-                            Number(item.price) * item.quantity
-                          ).toFixed(2)}
+                          ${(Number(item.price) * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     ))}
                   </div>
                 </div>
 
+                {/* Admin Order Details Link */}
                 <div className="mt-5 flex justify-end">
                   <Link
-                    to={`/orders/${order.id}`}
-                    className="text-sm font-medium text-gray-700 hover:text-black"
+                    to={`/admin/orders/${order.id}`}
+                    className="text-sm font-medium text-gray-700 transition hover:text-black"
                   >
                     View Customer Order →
                   </Link>

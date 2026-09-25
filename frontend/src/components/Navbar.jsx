@@ -10,7 +10,10 @@ const Navbar = () => {
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartCount = cart.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   const handleLogout = () => {
     logout();
@@ -20,14 +23,19 @@ const Navbar = () => {
 
   const navLinkClass = ({ isActive }) =>
     `transition ${
-      isActive ? "text-black font-semibold" : "text-gray-600 hover:text-black"
+      isActive
+        ? "font-semibold text-black"
+        : "text-gray-600 hover:text-black"
     }`;
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
         {/* Logo */}
-        <Link to="/" className="text-xl font-bold tracking-tight text-gray-900">
+        <Link
+          to="/"
+          className="text-xl font-bold tracking-tight text-gray-900"
+        >
           ShopStore
         </Link>
 
@@ -44,6 +52,7 @@ const Navbar = () => {
           <NavLink to="/cart" className={navLinkClass}>
             <span className="flex items-center gap-2">
               Cart
+
               {cartCount > 0 && (
                 <span className="rounded-full bg-black px-2 py-0.5 text-xs text-white">
                   {cartCount}
@@ -52,6 +61,7 @@ const Navbar = () => {
             </span>
           </NavLink>
 
+          {/* Customer Orders */}
           {user && (
             <NavLink to="/orders" className={navLinkClass}>
               Orders
@@ -61,16 +71,27 @@ const Navbar = () => {
           {/* Admin Navigation */}
           {user?.role === "ADMIN" && (
             <>
-              <NavLink to="/admin/products" className={navLinkClass}>
+              <NavLink to="/admin" className={navLinkClass}>
+                Admin Dashboard
+              </NavLink>
+
+              <NavLink
+                to="/admin/products"
+                className={navLinkClass}
+              >
                 Admin Products
               </NavLink>
 
-              <NavLink to="/admin/orders" className={navLinkClass}>
+              <NavLink
+                to="/admin/orders"
+                className={navLinkClass}
+              >
                 Admin Orders
               </NavLink>
             </>
           )}
 
+          {/* User Actions */}
           {user ? (
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-gray-700">
@@ -118,6 +139,7 @@ const Navbar = () => {
       {menuOpen && (
         <div className="border-t border-gray-200 bg-white px-4 py-4 md:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-4">
+            {/* Main Links */}
             <NavLink
               to="/"
               className={navLinkClass}
@@ -141,6 +163,7 @@ const Navbar = () => {
             >
               <span className="flex items-center gap-2">
                 Cart
+
                 {cartCount > 0 && (
                   <span className="rounded-full bg-black px-2 py-0.5 text-xs text-white">
                     {cartCount}
@@ -149,6 +172,7 @@ const Navbar = () => {
               </span>
             </NavLink>
 
+            {/* Customer Orders */}
             {user && (
               <NavLink
                 to="/orders"
@@ -159,35 +183,42 @@ const Navbar = () => {
               </NavLink>
             )}
 
-            {/* Mobile Admin Navigation */}
+            {/* Admin Links */}
             {user?.role === "ADMIN" && (
-              <>
-                <div className="border-t border-gray-200 pt-4">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                    Admin
-                  </p>
+              <div className="border-t border-gray-200 pt-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                  Admin
+                </p>
 
-                  <div className="flex flex-col gap-4">
-                    <NavLink
-                      to="/admin/products"
-                      className={navLinkClass}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Product Management
-                    </NavLink>
+                <div className="flex flex-col gap-4">
+                  <NavLink
+                    to="/admin"
+                    className={navLinkClass}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Dashboard
+                  </NavLink>
 
-                    <NavLink
-                      to="/admin/orders"
-                      className={navLinkClass}
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      Order Management
-                    </NavLink>
-                  </div>
+                  <NavLink
+                    to="/admin/products"
+                    className={navLinkClass}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Products
+                  </NavLink>
+
+                  <NavLink
+                    to="/admin/orders"
+                    className={navLinkClass}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Orders
+                  </NavLink>
                 </div>
-              </>
+              </div>
             )}
 
+            {/* User Actions */}
             {user ? (
               <div className="border-t border-gray-200 pt-4">
                 <p className="mb-3 text-sm font-medium text-gray-700">
