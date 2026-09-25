@@ -32,40 +32,61 @@ export const createOrder = async (userId, items, checkoutData) => {
     throw error;
   }
 
+  const orderItems = [];
   let subtotal = 0;
 
-  const orderItems = items.map((item) => {
-    const product = products.find(
-      (product) => product.product_id === item.product_id,
-    );
-
+  for (const item of items) {
     if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
       const error = new Error("Invalid quantity");
       error.statusCode = 400;
       throw error;
     }
 
-    if (product.stock < item.quantity) {
-      const error = new Error(`Not enough stock for ${product.name}`);
-      error.statusCode = 400;
-      throw error;
-    }
+    const product = products.find(
+      (product) => product.product_id === item.product_id,
+    );
 
     subtotal += Number(product.price) * item.quantity;
 
-    return {
+    orderItems.push({
       product_id: product.product_id,
       quantity: item.quantity,
       price: Number(product.price),
-    };
-  });
+    });
+  }
 
- const shippingFee = subtotal > 0 ? 5 : 0;
-const total = Number(
-  (subtotal + shippingFee).toFixed(2)
-);
+  const shippingFee = subtotal > 0 ? 5 : 0;
+
+  const total = Number((subtotal + shippingFee).toFixed(2));
 
   const order = await prisma.$transaction(async (tx) => {
+    for (const item of orderItems) {
+      const updatedProduct = await tx.product.updateMany({
+        where: {
+          product_id: item.product_id,
+          stock: {
+            gte: item.quantity,
+          },
+        },
+        data: {
+          stock: {
+            decrement: item.quantity,
+          },
+        },
+      });
+
+      if (updatedProduct.count === 0) {
+        const product = products.find(
+          (product) => product.product_id === item.product_id,
+        );
+
+        const error = new Error(`Not enough stock for ${product.name}`);
+
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+
     const newOrder = await tx.order.create({
       data: {
         userId,
@@ -88,19 +109,6 @@ const total = Number(
         price: item.price,
       })),
     });
-
-    for (const item of orderItems) {
-      await tx.product.update({
-        where: {
-          product_id: item.product_id,
-        },
-        data: {
-          stock: {
-            decrement: item.quantity,
-          },
-        },
-      });
-    }
 
     return tx.order.findUnique({
       where: {
