@@ -27,22 +27,18 @@ router.post(
   adminMiddleware,
   upload.single("image"),
   validateProduct,
-  createProduct
+  createProduct,
 );
 
 router.put(
   "/:id",
   authMiddleware,
   adminMiddleware,
+  upload.single("image"),
   validateProduct,
-  updateProduct
+  updateProduct,
 );
 
-router.delete(
-  "/:id",
-  authMiddleware,
-  adminMiddleware,
-  deleteProduct
-);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteProduct);
 
 export default router;

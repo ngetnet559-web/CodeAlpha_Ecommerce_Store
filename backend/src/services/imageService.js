@@ -1,22 +1,34 @@
 import cloudinary from "../config/cloudinary.js";
 
-const uploadImage = async (file) => {
-  return await new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
+export const uploadImage = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: "ecommerce/products",
       },
       (error, result) => {
         if (error) {
           reject(error);
-        } else {
-          resolve(result);
+          return;
         }
+
+        resolve(result);
       }
     );
 
-    stream.end(file.buffer);
+    uploadStream.end(buffer);
   });
 };
 
-export { uploadImage };
+export const deleteImage = (publicId) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(publicId, (error, result) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(result);
+    });
+  });
+};
