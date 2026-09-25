@@ -31,7 +31,6 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-        {/* Logo */}
         <Link
           to="/"
           className="text-xl font-bold tracking-tight text-gray-900"
@@ -61,7 +60,6 @@ const Navbar = () => {
             </span>
           </NavLink>
 
-          {/* Customer Orders */}
           {user && (
             <NavLink to="/orders" className={navLinkClass}>
               Orders
@@ -70,28 +68,40 @@ const Navbar = () => {
 
           {/* Admin Navigation */}
           {user?.role === "ADMIN" && (
-            <>
-              <NavLink to="/admin" className={navLinkClass}>
-                Admin Dashboard
-              </NavLink>
-
-              <NavLink
-                to="/admin/products"
-                className={navLinkClass}
+            <div className="group relative">
+              <button
+                type="button"
+                className="flex items-center gap-1 text-gray-600 transition hover:text-black"
               >
-                Admin Products
-              </NavLink>
+                Admin
+                <span className="text-xs">▼</span>
+              </button>
 
-              <NavLink
-                to="/admin/orders"
-                className={navLinkClass}
-              >
-                Admin Orders
-              </NavLink>
-            </>
+              <div className="invisible absolute right-0 top-full w-48 translate-y-2 rounded-xl border border-gray-200 bg-white p-2 opacity-0 shadow-lg transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <Link
+                  to="/admin"
+                  className="block rounded-lg px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100 hover:text-black"
+                >
+                  Dashboard
+                </Link>
+
+                <Link
+                  to="/admin/products"
+                  className="block rounded-lg px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100 hover:text-black"
+                >
+                  Products
+                </Link>
+
+                <Link
+                  to="/admin/orders"
+                  className="block rounded-lg px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-100 hover:text-black"
+                >
+                  Orders
+                </Link>
+              </div>
+            </div>
           )}
 
-          {/* User Actions */}
           {user ? (
             <div className="flex items-center gap-4">
               <span className="text-sm font-medium text-gray-700">
@@ -139,7 +149,6 @@ const Navbar = () => {
       {menuOpen && (
         <div className="border-t border-gray-200 bg-white px-4 py-4 md:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-4">
-            {/* Main Links */}
             <NavLink
               to="/"
               className={navLinkClass}
@@ -172,7 +181,6 @@ const Navbar = () => {
               </span>
             </NavLink>
 
-            {/* Customer Orders */}
             {user && (
               <NavLink
                 to="/orders"
@@ -183,7 +191,7 @@ const Navbar = () => {
               </NavLink>
             )}
 
-            {/* Admin Links */}
+            {/* Mobile Admin Navigation */}
             {user?.role === "ADMIN" && (
               <div className="border-t border-gray-200 pt-4">
                 <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -218,7 +226,6 @@ const Navbar = () => {
               </div>
             )}
 
-            {/* User Actions */}
             {user ? (
               <div className="border-t border-gray-200 pt-4">
                 <p className="mb-3 text-sm font-medium text-gray-700">
