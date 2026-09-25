@@ -10,6 +10,22 @@ const statusStyles = {
   CANCELLED: "bg-red-100 text-red-800",
 };
 
+const statusLabels = {
+  PENDING: "Pending",
+  PROCESSING: "Processing",
+  SHIPPED: "Shipped",
+  DELIVERED: "Delivered",
+  CANCELLED: "Cancelled",
+};
+
+const allowedTransitions = {
+  PENDING: ["PROCESSING", "CANCELLED"],
+  PROCESSING: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "CANCELLED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+
 const AdminOrderDetails = () => {
   const { id } = useParams();
 
@@ -35,6 +51,15 @@ const AdminOrderDetails = () => {
           },
         });
 
+        const contentType =
+          response.headers.get("content-type");
+
+        if (!contentType?.includes("application/json")) {
+          throw new Error(
+            `Server returned an unexpected response (${response.status})`
+          );
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -56,7 +81,10 @@ const AdminOrderDetails = () => {
           setLoading(false);
         }
       } catch (error) {
-        console.error("Admin order details error:", error);
+        console.error(
+          "Admin order details error:",
+          error
+        );
 
         if (!ignore) {
           setError(error.message);
@@ -97,19 +125,16 @@ const AdminOrderDetails = () => {
         }
       );
 
-      const contentType = response.headers.get("content-type");
+      const contentType =
+        response.headers.get("content-type");
 
-      let data;
-
-      if (contentType?.includes("application/json")) {
-        data = await response.json();
-      } else {
-        await response.text();
-
+      if (!contentType?.includes("application/json")) {
         throw new Error(
           `Server returned an unexpected response (${response.status})`
         );
       }
+
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -124,7 +149,11 @@ const AdminOrderDetails = () => {
 
       toast.success("Order status updated");
     } catch (error) {
-      console.error("Update order status error:", error);
+      console.error(
+        "Update order status error:",
+        error
+      );
+
       toast.error(error.message);
     } finally {
       setUpdating(false);
@@ -166,6 +195,8 @@ const AdminOrderDetails = () => {
     );
   }
 
+  const nextStatuses = allowedTransitions[order.status] || [];
+
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10">
       <div className="mx-auto max-w-4xl">
@@ -191,15 +222,19 @@ const AdminOrderDetails = () => {
                     "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  {order.status}
+                  {statusLabels[order.status] ||
+                    order.status}
                 </span>
               </div>
 
               <p className="mt-2 text-sm text-gray-500">
-                {new Date(order.createdAt).toLocaleString()}
+                {new Date(
+                  order.createdAt
+                ).toLocaleString()}
               </p>
             </div>
 
+            {/* Status */}
             <div>
               <label
                 htmlFor="order-status"
@@ -208,39 +243,40 @@ const AdminOrderDetails = () => {
                 Update Status
               </label>
 
-              <select
-                id="order-status"
-                value={order.status}
-                disabled={updating}
-                onChange={(event) =>
-                  updateStatus(event.target.value)
-                }
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-black disabled:opacity-50"
-              >
-                <option value="PENDING">
-                  Pending
-                </option>
+              {nextStatuses.length > 0 ? (
+                <select
+                  id="order-status"
+                  value=""
+                  disabled={updating}
+                  onChange={(event) => {
+                    if (event.target.value) {
+                      updateStatus(event.target.value);
+                    }
+                  }}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm outline-none focus:border-black disabled:opacity-50"
+                >
+                  <option value="">
+                    Select next status
+                  </option>
 
-                <option value="PROCESSING">
-                  Processing
-                </option>
-
-                <option value="SHIPPED">
-                  Shipped
-                </option>
-
-                <option value="DELIVERED">
-                  Delivered
-                </option>
-
-                <option value="CANCELLED">
-                  Cancelled
-                </option>
-              </select>
+                  {nextStatuses.map((status) => (
+                    <option
+                      key={status}
+                      value={status}
+                    >
+                      {statusLabels[status]}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-500">
+                  No further changes
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Customer and Delivery */}
+          {/* Customer + Delivery */}
           <div className="grid gap-8 border-b border-gray-100 py-6 md:grid-cols-2">
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
@@ -286,7 +322,7 @@ const AdminOrderDetails = () => {
             </div>
           </div>
 
-          {/* Products */}
+          {/* Order Items */}
           <div className="border-b border-gray-100 py-6">
             <h2 className="text-sm font-semibold text-gray-900">
               Order Items
@@ -301,7 +337,8 @@ const AdminOrderDetails = () => {
                   <img
                     src={item.product?.image}
                     alt={
-                      item.product?.name || "Product"
+                      item.product?.name ||
+                      "Product"
                     }
                     className="h-20 w-20 rounded-lg object-cover"
                   />
@@ -333,7 +370,7 @@ const AdminOrderDetails = () => {
             </div>
           </div>
 
-          {/* Order Summary */}
+          {/* Total */}
           <div className="flex justify-end pt-6">
             <div className="w-full max-w-sm space-y-3">
               <div className="flex justify-between text-sm text-gray-600">

@@ -7,13 +7,7 @@ export const createOrder = async (userId, items, checkoutData) => {
     throw error;
   }
 
-  const {
-    fullName,
-    phone,
-    address,
-    city,
-    paymentMethod,
-  } = checkoutData;
+  const { fullName, phone, address, city, paymentMethod } = checkoutData;
 
   const productIds = items.map((item) => item.product_id);
   const uniqueProductIds = new Set(productIds);
@@ -42,7 +36,7 @@ export const createOrder = async (userId, items, checkoutData) => {
 
   const orderItems = items.map((item) => {
     const product = products.find(
-      (product) => product.product_id === item.product_id
+      (product) => product.product_id === item.product_id,
     );
 
     if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
@@ -188,6 +182,14 @@ export const getAllOrders = async () => {
 };
 
 export const updateOrderStatus = async (orderId, status) => {
+  const allowedTransitions = {
+    PENDING: ["PROCESSING", "CANCELLED"],
+    PROCESSING: ["SHIPPED", "CANCELLED"],
+    SHIPPED: ["DELIVERED", "CANCELLED"],
+    DELIVERED: [],
+    CANCELLED: [],
+  };
+
   return await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: {
@@ -204,31 +206,16 @@ export const updateOrderStatus = async (orderId, status) => {
       throw error;
     }
 
-    if (order.status === "CANCELLED") {
+    if (!allowedTransitions[order.status]?.includes(status)) {
       const error = new Error(
-        "Cancelled orders cannot be updated"
+        `Cannot change order status from ${order.status} to ${status}`,
       );
 
       error.statusCode = 400;
       throw error;
     }
 
-    if (
-      order.status === "DELIVERED" &&
-      status !== "DELIVERED"
-    ) {
-      const error = new Error(
-        "Delivered orders cannot be moved backwards"
-      );
-
-      error.statusCode = 400;
-      throw error;
-    }
-
-    if (
-      status === "CANCELLED" &&
-      order.status !== "CANCELLED"
-    ) {
+    if (status === "CANCELLED") {
       for (const item of order.orderItems) {
         await tx.product.update({
           where: {
