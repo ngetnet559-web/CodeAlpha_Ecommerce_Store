@@ -124,7 +124,29 @@ export const deleteProduct = async (req, res, next) => {
       });
     }
 
+    const existingProduct = await getProductService(productId);
+
+    if (!existingProduct) {
+      return res.status(404).json({
+        message: "Product not found",
+      });
+    }
+
     await deleteProductService(productId);
+
+    if (existingProduct.image) {
+      try {
+        const imageUrlParts = existingProduct.image.split("/");
+
+        const fileName = imageUrlParts[imageUrlParts.length - 1];
+
+        const publicIdWithoutExtension = fileName.split(".")[0];
+
+        await deleteImage(`ecommerce/products/${publicIdWithoutExtension}`);
+      } catch (imageError) {
+        console.error("Failed to delete Cloudinary image:", imageError);
+      }
+    }
 
     res.status(204).send();
   } catch (error) {
